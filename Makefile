@@ -1,7 +1,7 @@
 all: main.nds
 
 run: main.nds
-	desmume main.nds
+	desmume-cli main.nds
 
 obj:
 	mkdir obj
