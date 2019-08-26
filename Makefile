@@ -10,7 +10,7 @@ main.nds: obj/main.arm9 obj/main.arm7
 	ndstool -c main.nds -9 obj/main.arm9 -7 obj/main.arm7
 
 obj/main.arm9: obj
-	xargo objcopy --bin test-arm9 --release -- -O binary $@
+	RUST_TARGET_PATH=${PWD} xargo objcopy --bin test-arm9 --release -- -O binary $@
 
 obj/main.arm7: obj/main.arm7.elf
 	arm-none-eabi-objcopy -O binary $< $@
