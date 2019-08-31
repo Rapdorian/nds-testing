@@ -1,0 +1,14 @@
+- Start working on Display Management
+    I want all of the init stuff in `src/main.rs` to be removed
+
+- Start pulling reusable drawing code into it's own crate
+
+- Make a usable Drawing crate
+
+    - Frame buffer shapes
+
+    - 2d HW-Acceleration
+
+- Input
+
+- Audio

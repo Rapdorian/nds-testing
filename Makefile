@@ -18,7 +18,7 @@ obj:
 bin: 
 	mkdir bin
 
-bin/$(bin).nds: obj/$(bin).arm9 obj/$(bin).arm7 link.x Cargo.toml bin
+bin/$(bin).nds: obj/$(bin).arm9 obj/$(bin).arm7 bin
 	ndstool -c bin/$(bin).nds -9 obj/$(bin).arm9 -7 obj/$(bin).arm7
 
 obj/$(bin).arm9: obj
