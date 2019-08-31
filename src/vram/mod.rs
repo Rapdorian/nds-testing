@@ -1,5 +1,6 @@
 pub mod framebuffer;
 
+use core::fmt::Write;
 use framebuffer::FrameBuffer;
 
 pub mod mode {
@@ -32,3 +33,13 @@ impl FrameBuffer for BankA<mode::FrameBuffer> {
 pub static mut BANK_A: BankA<mode::Unknown> = BankA {
     mode: mode::Unknown,
 };
+
+impl Write for BankA<mode::FrameBuffer> {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        unsafe {
+            static mut pos: (usize, usize) = (0, 0);
+            pos = self.draw_str(s, pos.0, pos.1);
+        }
+        Ok(())
+    }
+}

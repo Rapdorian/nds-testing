@@ -1,27 +1,31 @@
+bin=test-arm9
 release = 
 
-all: main.nds
+all: bin/$(bin).nds
 
-run: release exe
-debug: exe
+run: release
+	desmume-cli bin/$(bin).nds
+
+debug: bin/$(bin.nds)
+	desmume-cli --arm9gdb 2000 bin/$(bin).nds &
+	RUST_GDB=arm-none-eabi-gdb rust-gdb target/armv5te-none-eabi/debug/${bin}
 
 release: release = --release
-release: main.nds
-
-exe: main.nds
-	desmume-cli main.nds
+release: bin/$(bin).nds
 
 obj:
 	mkdir obj
+bin: 
+	mkdir bin
 
-main.nds: obj/main.arm9 obj/main.arm7
-	ndstool -c main.nds -9 obj/main.arm9 -7 obj/main.arm7
+bin/$(bin).nds: obj/$(bin).arm9 obj/$(bin).arm7 link.x Cargo.toml bin
+	ndstool -c bin/$(bin).nds -9 obj/$(bin).arm9 -7 obj/$(bin).arm7
 
-obj/main.arm9: obj
-	xargo objcopy --bin test-arm9 $(release) -- -O binary $@
+obj/$(bin).arm9: obj
+	RUST_TARGET_PATH=${PWD} xargo objcopy --bin $(bin) $(release) -- -O binary $@
 
-obj/main.arm7: obj/main.arm7.elf
+obj/$(bin).arm7: obj/$(bin).arm7.elf
 	arm-none-eabi-objcopy -O binary $< $@
 
-obj/main.arm7.elf: arm7/main.s obj
+obj/$(bin).arm7.elf: arm7/main.s obj
 	arm-none-eabi-as $< -o $@

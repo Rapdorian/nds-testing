@@ -2,9 +2,7 @@ use crate::color::HighColor;
 use crate::font::{Font, TestFont};
 use core::ptr::write_volatile;
 
-use font8x8::legacy::BASIC_LEGACY;
-
-static FONT: [[u8; 8]; 128] = BASIC_LEGACY;
+use font8x8::{UnicodeFonts, BASIC_FONTS};
 
 pub trait FrameBuffer {
     const VRAM: usize;
@@ -59,22 +57,43 @@ pub trait FrameBuffer {
     }
 
     fn draw_glyph(&mut self, c: char, row: usize, line: usize) {
-        let g = FONT[c as usize];
-        let mut col = 0;
-        for x in &g {
-            for bit in 0..8 {
-                let x_off = (row*9);
-                let y_off = (line*10) + col;
-                match *x & 1 << bit {
-                    0 => {
-                        self.draw(x_off+bit, y_off, Self::BLUE);
-                    }
-                    _ => {
-                        self.draw(x_off+ bit, y_off, Self::WHITE);
+        if !c.is_ascii() {
+            return;
+        }
+        if let Some(g) = BASIC_FONTS.get(c) {
+            let mut col = 0;
+            for x in &g {
+                for bit in 0..8 {
+                    let x_off = (row * 8);
+                    let y_off = (line * 8) + col;
+                    match *x & 1 << bit {
+                        0 => {}
+                        _ => {
+                            self.draw(x_off + bit, y_off, Self::WHITE);
+                        }
                     }
                 }
+                col += 1;
             }
-            col += 1;
         }
+    }
+
+    fn draw_str(&mut self, s: &str, col: usize, line: usize) -> (usize, usize) {
+        let mut col = col;
+        let mut line = line;
+        for x in s.chars() {
+            if col >= 32 {
+                col = 0;
+                line += 1;
+            }
+            if x == '\n' {
+                col = 0;
+                line += 1
+            } else {
+                self.draw_glyph(x, col, line);
+                col += 1;
+            }
+        }
+        (col, line)
     }
 }

@@ -1,9 +1,12 @@
 #![no_std]
 #![no_main]
-#![feature(lang_items, core_intrinsics, asm)]
+#![feature(panic_info_message, lang_items, core_intrinsics, asm)]
 
+use core::fmt::Write;
 use core::intrinsics;
 use core::ptr::{read_volatile, write_volatile};
+
+use numtoa::NumToA;
 
 mod color;
 mod font;
@@ -23,8 +26,8 @@ fn wait_vblank() {
 }
 
 #[no_mangle]
+#[link_section = ".text.startup"]
 pub extern "C" fn _start() -> ! {
-    panic!();
     unsafe {
         write_volatile(POWER_CR, 0x3); // turn on bottom screen
         write_volatile(DISP_CNT, 0x00020000); // draw framebuffer to bottom screen
@@ -54,8 +57,9 @@ pub extern "C" fn _start() -> ! {
         } else {
             sat -= 1;
         }
-        bank_a.draw_glyph('A', 0, 0);
-        bank_a.draw_glyph('B', 1, 0);
+
+        bank_a.draw_str("Hello world", 0, 0);
+
         wait_vblank();
     }
 }
@@ -63,26 +67,23 @@ pub extern "C" fn _start() -> ! {
 use core::panic::PanicInfo;
 #[panic_handler]
 pub fn panic(panic: &PanicInfo<'_>) -> ! {
-    //let message = panic.payload().downcast_ref::<&str>();
     wait_vblank();
     unsafe {
         write_volatile(POWER_CR, 0x3);
         write_volatile(DISP_CNT, 0x20000);
     }
-
     let bank_a = unsafe { vram::BANK_A };
     let mut bank_a = bank_a.framebuffer();
+
     for y in 0..192 {
         for x in 0..256 {
-            let c = ((y ^ x) as u8 * 2) % 20;
+            let c = ((y + (y / 3)) ^ x) / 2;
+            let c = c as u8;
             let color = color::HighColor::new(c, c, c);
             bank_a.draw(x, y, color.into());
         }
     }
-    // draw panic message on screen in white
-    let white = color::HighColor::new(0xFF, 0xFF, 0xFF);
-
+    writeln!(bank_a, "{}", panic);
     wait_vblank();
-    //unsafe { intrinsics::abort() }
     loop {}
 }
