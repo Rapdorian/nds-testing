@@ -1,9 +1,15 @@
 #![no_std]
 #![no_main]
+#![feature(panic_info_message, lang_items, core_intrinsics, asm)]
 
+use core::fmt::Write;
+use core::intrinsics;
 use core::ptr::{read_volatile, write_volatile};
 
+use numtoa::NumToA;
+
 mod color;
+mod font;
 mod vram;
 
 use vram::framebuffer::FrameBuffer;
@@ -20,6 +26,7 @@ fn wait_vblank() {
 }
 
 #[no_mangle]
+#[link_section = ".text.startup"]
 pub extern "C" fn _start() -> ! {
     unsafe {
         write_volatile(POWER_CR, 0x3); // turn on bottom screen
@@ -50,12 +57,33 @@ pub extern "C" fn _start() -> ! {
         } else {
             sat -= 1;
         }
+
+        bank_a.draw_str("Hello world", 0, 0);
+
         wait_vblank();
     }
 }
 
 use core::panic::PanicInfo;
 #[panic_handler]
-pub fn panic(_panic: &PanicInfo<'_>) -> ! {
+pub fn panic(panic: &PanicInfo<'_>) -> ! {
+    wait_vblank();
+    unsafe {
+        write_volatile(POWER_CR, 0x3);
+        write_volatile(DISP_CNT, 0x20000);
+    }
+    let bank_a = unsafe { vram::BANK_A };
+    let mut bank_a = bank_a.framebuffer();
+
+    for y in 0..192 {
+        for x in 0..256 {
+            let c = ((y + (y / 3)) ^ x) / 2;
+            let c = c as u8;
+            let color = color::HighColor::new(c, c, c);
+            bank_a.draw(x, y, color.into());
+        }
+    }
+    writeln!(bank_a, "{}", panic);
+    wait_vblank();
     loop {}
 }

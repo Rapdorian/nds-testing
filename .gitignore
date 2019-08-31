@@ -2,3 +2,4 @@
 /obj
 **/*.rs.bk
 *.nds
+Session.vim
