@@ -5,4 +5,4 @@ rustflags = ["-C", "link-arg=-Tlink.x"]
 rustflags = ["-C", "link-arg=-Tlink.x"]
 
 [build]
-target = "armv5te-none-eabi"
+target = "thumbv5te-none-eabi"

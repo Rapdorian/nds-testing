@@ -29,6 +29,7 @@ pub fn _irq_handler() {}
 pub fn main() {
     assert!(nds_rt::bios::div(203, 10) == (20, 3, 20));
     assert!(nds_rt::bios::sqrt(100) == 10);
+    assert!(false);
     unsafe {
         write_volatile(POWER_CR, 0x3); // turn on bottom screen
         write_volatile(DISP_CNT, 0x00020000); // draw framebuffer to bottom screen
